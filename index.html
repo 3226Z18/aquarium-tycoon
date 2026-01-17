@@ -852,6 +852,83 @@
 </div>
 
 <script>
+    const fishPacks = {
+        "基础鱼苗包": [
+            { id: "basic1", name: "极光剑鱼", desc: "尾部拖着光痕的高速掠食者。", income: 1, growth: "10秒", growthSec: 10, color: "linear-gradient(135deg, #4cc9f0, #4361ee)", tail: "polygon(0 50%, 100% 0, 100% 100%)" },
+            { id: "basic2", name: "霞光鳍鲤", desc: "在水面附近悠闲巡游的小型鱼。", income: 2, growth: "20秒", growthSec: 20, color: "linear-gradient(135deg, #ff9e00, #ff006e)", tail: "polygon(0 20%, 100% 50%, 0 80%)" },
+            { id: "basic3", name: "幽蓝滑鳍", desc: "夜晚会微微发光的安静鱼类。", income: 3, growth: "30秒", growthSec: 30, color: "linear-gradient(135deg, #7209b7, #3f37c9)", tail: "polygon(0 0, 100% 50%, 0 100%)" },
+            { id: "basic4", name: "银影快鳍", desc: "一闪而过就消失在水草之间。", income: 4, growth: "45秒", growthSec: 45, color: "linear-gradient(135deg, #e0e1dd, #778da9)", tail: "polygon(0 50%, 100% 20%, 100% 80%)" },
+            { id: "basic5", name: "晨曦花纹鱼", desc: "身上有淡淡云状花纹。", income: 5, growth: "1分钟", growthSec: 60, color: "linear-gradient(135deg, #f9c74f, #90be6d)", tail: "circle(50% at 50% 50%)" },
+        ],
+        "豪华鱼苗包": [
+            { id: "lux1", name: "星环刃鱼", desc: "身体周围有淡淡星环光带。", income: 20, growth: "2分钟", growthSec: 120, color: "linear-gradient(135deg, #480ca8, #4cc9f0)", tail: "polygon(0 50%, 100% 0, 100% 100%)" },
+            { id: "lux2", name: "深渊流星鲨", desc: "像流星一样划过深海。", income: 30, growth: "3分钟", growthSec: 180, color: "linear-gradient(135deg, #03045e, #0077b6)", tail: "polygon(0 30%, 100% 50%, 0 70%)" },
+            { id: "lux3", name: "霜翼龙鳍", desc: "鳍边缘仿佛覆盖着冰霜。", income: 40, growth: "5分钟", growthSec: 300, color: "linear-gradient(135deg, #caf0f8, #00b4d8)", tail: "polygon(20% 0, 100% 50%, 20% 100%)" },
+            { id: "lux4", name: "珊瑚王冠鱼", desc: "头顶形状像一圈王冠。", income: 50, growth: "8分钟", growthSec: 480, color: "linear-gradient(135deg, #f72585, #b5179e)", tail: "polygon(0 50%, 100% 10%, 100% 90%)" },
+            { id: "lux5", name: "黎明破晓鲔", desc: "日出时最活跃的捕食者。", income: 60, growth: "10分钟", growthSec: 600, color: "linear-gradient(135deg, #fb8500, #ffb703)", tail: "polygon(0 40%, 100% 50%, 0 60%)" },
+        ],
+        "顶级鱼苗包": [
+            { id: "top1", name: "虚空棱镜鱼", desc: "身体像透明棱镜折射光线。", income: 120, growth: "20分钟", growthSec: 1200, color: "linear-gradient(135deg, #bde0fe, #ffafcc)", tail: "polygon(0 50%, 100% 0, 100% 100%)" },
+            { id: "top2", name: "雷霆裂鳍", desc: "游动时尾部带着电弧残影。", income: 150, growth: "30分钟", growthSec: 1800, color: "linear-gradient(135deg, #fee440, #00f5d4)", tail: "polygon(0 0, 100% 50%, 0 100%)" },
+            { id: "top3", name: "幻光龙鲸", desc: "优雅而巨大的远古深海生物。", income: 200, growth: "1小时", growthSec: 3600, color: "linear-gradient(135deg, #9b5de5, #f15bb5)", tail: "polygon(0 50%, 100% 10%, 100% 90%)" },
+            { id: "top4", name: "星云游蛇鱼", desc: "身后拖着星云般的尾迹。", income: 260, growth: "1.5小时", growthSec: 5400, color: "linear-gradient(135deg, #00bbf9, #00f5d4)", tail: "polygon(10% 20%, 100% 50%, 10% 80%)" },
+            { id: "top5", name: "时光回声鱼", desc: "据说能在水中留下短暂的倒影。", income: 300, growth: "2小时", growthSec: 7200, color: "linear-gradient(135deg, #8338ec, #3a86ff)", tail: "polygon(0 50%, 80% 0, 100% 50%, 80% 100%)" },
+        ],
+        "宇宙级鱼苗包": [
+            { id: "cos1", name: "黑洞之瞳", desc: "中心如同一枚微缩黑洞。", income: 800, growth: "5小时", growthSec: 18000, color: "linear-gradient(135deg, #000000, #4361ee)", tail: "circle(50% at 50% 50%)" },
+            { id: "cos2", name: "星芒裂界鲨", desc: "鳍尖拖着星芒碎片。", income: 1000, growth: "8小时", growthSec: 28800, color: "linear-gradient(135deg, #4895ef, #4cc9f0)", tail: "polygon(0 50%, 100% 0, 100% 100%)" },
+            { id: "cos3", name: "寰宇轨道鱼", desc: "身边总有几枚小光点环绕。", income: 1200, growth: "12小时", growthSec: 43200, color: "linear-gradient(135deg, #7209b7, #f72585)", tail: "polygon(0 20%, 100% 50%, 0 80%)" },
+            { id: "cos4", name: "深空电光鳍", desc: "电流在鳞片间流动。", income: 1500, growth: "18小时", growthSec: 64800, color: "linear-gradient(135deg, #3a0ca3, #4cc9f0)", tail: "polygon(0 50%, 100% 10%, 100% 90%)" },
+            { id: "cos5", name: "虚实交界鲸", desc: "身体仿佛在现实与虚空间闪烁。", income: 2000, growth: "24小时", growthSec: 86400, color: "linear-gradient(135deg, #4361ee, #bde0fe)", tail: "polygon(10% 0, 100% 50%, 10% 100%)" },
+        ],
+        "终极·一京鱼苗包": [
+            { id: "ulti1", name: "永恒王座鱼", desc: "只会侍奉最强大的馆主。", income: 10000, growth: "2天", growthSec: 172800, color: "linear-gradient(135deg, #ffd700, #ff8c00)", tail: "polygon(0 50%, 100% 0, 100% 100%)" },
+            { id: "ulti2", name: "维度裂隙龙", desc: "游动时身后留下一道空间裂缝。", income: 15000, growth: "3天", growthSec: 259200, color: "linear-gradient(135deg, #4b0082, #9400d3)", tail: "polygon(0 0, 100% 50%, 0 100%)" },
+            { id: "ulti3", name: "创世光轮鲸", desc: "传说目睹它会带来好运。", income: 20000, growth: "5天", growthSec: 432000, color: "linear-gradient(135deg, #ffffff, #ffd700)", tail: "circle(50% at 50% 50%)" },
+            { id: "ulti4", name: "寰宇终焉鲨", desc: "气场压迫感极强的顶级掠食者。", income: 30000, growth: "7天", growthSec: 604800, color: "linear-gradient(135deg, #333333, #ff0000)", tail: "polygon(0 30%, 100% 50%, 0 70%)" },
+            { id: "ulti5", name: "无限回响鱼", desc: "鳞片上刻着未知文字。", income: 50000, growth: "14天", growthSec: 1209600, color: "linear-gradient(135deg, #00ff00, #0000ff)", tail: "polygon(0 50%, 100% 20%, 100% 80%)" },
+        ],
+    };
+
+    function formatCoinsShort(value) {
+        const abs = Math.abs(value);
+        const units = [
+            { v: 1e18, s: "Qi" },
+            { v: 1e15, s: "Qa" },
+            { v: 1e12, s: "T" },
+            { v: 1e9,  s: "B" },
+            { v: 1e6,  s: "M" },
+            { v: 1e3,  s: "K" },
+        ];
+        for (const u of units) {
+            if (abs >= u.v) {
+                const num = value / u.v;
+                const fixed = num >= 10 ? num.toFixed(0) : num.toFixed(2);
+                return `${fixed}${u.s}`;
+            }
+        }
+        return `${value}`;
+    }
+
+    function formatCoinsWithSymbol(value) {
+        return `$${formatCoinsShort(value)}`;
+    }
+
+    function updateCoinsDisplay() {
+        if (coinsAmountSpan) {
+            coinsAmountSpan.textContent = formatCoinsWithSymbol(coins);
+        }
+    }
+
+    function showNotification(message) {
+        if (!notificationContainer) return;
+        const note = document.createElement("div");
+        note.className = "notification";
+        note.textContent = message;
+        notificationContainer.appendChild(note);
+        setTimeout(() => { note.remove(); }, 5000);
+    }
+
     let currentLang = "zh";
     const translations = {
         zh: {
@@ -987,7 +1064,6 @@
                 el.placeholder = translations[currentLang][key];
             }
         });
-        // 更新动态文本
         document.getElementById("langBtn").textContent = currentLang === "zh" ? "EN" : "CN";
         if (activeFish) updateProfileCard(activeFish);
     }
