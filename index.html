@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <title>海族馆大亨 - 你的深海经营模拟</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #000814;
+            color: #ffffff;
+        }
+
+        .aquarium {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 顶部栏 */
+        .header {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 2;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info {
+            display: none; /* 登录后显示 */
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            border: 1px solid rgba(144, 224, 239, 0.3);
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: none;
+            color: #ff4d4d;
+            cursor: pointer;
+            font-size: 12px;
+            text-decoration: underline;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+        }
+        
+        .coins {
+            margin-left: 16px;
+            font-size: 14px;
+            color: #ffd166;
+            text-shadow: 0 0 8px rgba(255, 209, 102, 0.5);
+        }
+
+        .shop-button {
+            padding: 8px 20px;
+            border-radius: 999px;
+            border: none;
+            background: linear-gradient(135deg, #00b4d8, #0096c7);
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 150, 199, 0.6);
+        }
+
+        .shop-button:hover {
+            background: linear-gradient(135deg, #48cae4, #0096c7);
+        }
+
+        /* 海洋背景 */
+        .sea-background {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #184e77 0%, #1e6091 20%, #1a759f 40%, #168aad 60%, #34a0a4 80%, #52b69a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 增强型海底沙地 */
+        .sea-floor {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 120px;
+            background: 
+                radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.15) 0%, transparent 30%),
+                radial-gradient(circle at 80% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 30%),
+                #d4a373;
+            box-shadow: inset 0 30px 40px rgba(0, 0, 0, 0.4);
+            border-top: 5px solid #b5832a;
+        }
+
+        /* 沙地纹理：增加多层杂色感 */
+        .sea-floor::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: 
+                radial-gradient(#b5832a 1px, transparent 1px),
+                radial-gradient(#faedcd 1px, transparent 1px);
+            background-size: 3px 3px, 7px 7px;
+            opacity: 0.4;
+        }
+
+        /* 装饰：海底的小山丘（更有层次感） */
+        .sea-floor::after {
+            content: "";
+            position: absolute;
+            top: -40px;
+            left: -10%;
+            width: 120%;
+            height: 80px;
+            background: #d4a373;
+            border-radius: 50% 50% 0 0;
+            box-shadow: 0 -10px 20px rgba(0, 0, 0, 0.15);
+            filter: blur(1px);
+        }
+                
+        .fish-info-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+            z-index: 100; /* 确保在鱼苗之上 */
+        }
+                
+        .fish-info-overlay.hidden {
+            display: none;
+        }
+                
+        .fish-info-panel {
+            pointer-events: auto;
+            background: rgba(4, 18, 48, 0.98);
+            border-radius: 16px;
+            padding: 20px;
+            width: 380px;
+            max-width: 90vw;
+            box-shadow: 0 0 50px rgba(0, 180, 216, 0.3);
+            border: 1px solid rgba(148, 210, 255, 0.6);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+                
+        .fish-info-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #90e0ef;
+            text-align: center;
+            border-bottom: 1px solid rgba(144, 224, 239, 0.3);
+            padding-bottom: 10px;
+        }
+                
+        .fish-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+                
+        .fish-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px;
+            border-radius: 10px;
+        }
+                
+        .fish-mini {
+            width: 40px;
+            height: 20px;
+            border-radius: 70% 30% 70% 30%;
+            position: relative;
+            flex-shrink: 0;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+                
+        .fish-text-main {
+            font-size: 15px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+                
+        .fish-text-sub {
+            font-size: 12px;
+            color: #caf0f8;
+            margin-top: 2px;
+        }
+                
+        .fish-income {
+            font-size: 12px;
+            color: #ffd166;
+            font-weight: bold;
+            margin-top: 2px;
+        }
+                
+        .fish-info-close {
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            background: linear-gradient(135deg, #00b4d8, #0077b6);
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+                
+        .fish-info-close:hover {
+            filter: brightness(1.1);
+            transform: scale(1.02);
+        }
+                
+        /* 通知区域 */
+        .notification-container {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 110;
+            pointer-events: none;
+        }
+        
+        .notification {
+            background: rgba(0, 180, 216, 0.9);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border-left: 4px solid #ffd166;
+            animation: slideIn 0.3s ease-out, fadeOut 0.5s ease-in 4.5s forwards;
+            pointer-events: auto;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateY(10px); }
+        }
+        
+        /* 鱼详细档案卡（鼠标悬停显示） */
+        .fish-profile-card {
+            position: absolute;
+            right: 20px;
+            top: 100px;
+            width: 260px;
+            background: rgba(4, 18, 48, 0.95);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(148, 210, 255, 0.4);
+            z-index: 600;
+            display: none; /* 默认隐藏 */
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: auto;
+        }
+
+        .profile-name-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(144, 224, 239, 0.3);
+            border-radius: 4px;
+            color: white;
+            padding: 4px 8px;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+        }
+
+        .xp-bar-bg {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .xp-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd166, #ff9e00);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .profile-stat {
+            font-size: 12px;
+            color: #caf0f8;
+        }
+
+        .fish {
+            position: absolute;
+            width: 46px;
+            height: 22px;
+            background: linear-gradient(135deg, #4cc9f0, #4361ee);
+            border-radius: 70% 30% 70% 30%;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            opacity: 0.95;
+            transition: width 1s ease-in-out, height 1s ease-in-out, filter 1s ease-in-out, transform 0.5s ease-out; 
+            z-index: 5;
+            pointer-events: auto; /* 确保能响应鼠标事件 */
+            cursor: pointer;
+        }
+                
+        .fish.grown {
+            width: 92px; /* 原始 46px 的 2 倍 */
+            height: 44px; /* 原始 22px 的 2 倍 */
+            filter: brightness(1.3);
+            z-index: 10;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+        }
+
+        .fish .tail-part {
+            position: absolute;
+            right: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 18px;
+            transition: all 1s ease-in-out;
+        }
+
+        .fish.grown .tail-part {
+            width: 32px; /* 尾巴也同步放大 2 倍 */
+            height: 36px;
+            right: -18px;
+        }
+        
+        @keyframes swim-new {
+            0% {
+                left: -200px;
+            }
+            100% {
+                left: 110vw;
+            }
+        }
+
+        /* 商店面板 */
+        .shop-panel {
+            position: absolute;
+            right: 40px;
+            top: 60px;
+            width: 380px;
+            max-width: 90vw;
+            background: rgba(4, 18, 48, 0.93);
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(148, 210, 255, 0.4);
+            z-index: 500; /* 调高 z-index 确保不会被鱼挡住 */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .shop-panel.hidden {
+            display: none;
+        }
+
+        .shop-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(144, 224, 239, 0.4);
+        }
+
+        .shop-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .close-btn {
+            border: none;
+            background: transparent;
+            color: #ffffff;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .shop-tabs {
+            display: flex;
+            padding: 8px;
+            gap: 8px;
+            border-bottom: 1px solid rgba(144, 224, 239, 0.3);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 6px 4px;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            background: transparent;
+            color: #90e0ef;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #00b4d8, #0096c7);
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        .shop-content {
+            padding: 12px 14px 14px;
+            max-height: 65vh;
+            overflow-y: auto;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .item-card {
+            background: rgba(10, 36, 99, 0.85);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(144, 224, 239, 0.25);
+        }
+
+        .item-info {
+            max-width: 70%;
+        }
+
+        .item-name {
+            font-size: 15px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .item-desc {
+            font-size: 12px;
+            color: #caf0f8;
+        }
+
+        .item-price {
+            font-size: 13px;
+            color: #ffd166;
+            margin-top: 2px;
+        }
+
+        .buy-btn {
+            border: none;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #ffd166, #ff9e00);
+            color: #3a0ca3;
+            font-weight: bold;
+        }
+
+        .buy-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* bait tab 占位 */
+        .coming-soon {
+            text-align: center;
+            padding: 30px 10px;
+            font-size: 14px;
+            color: #caf0f8;
+        }
+
+        /* 滚动条美化一点点 */
+        .shop-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .shop-content::-webkit-scrollbar-thumb {
+            background: rgba(144, 224, 239, 0.6);
+            border-radius: 3px;
+        }
+
+        /* 鱼饵样式 */
+        .bait {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #ff9e00;
+            border-radius: 50%;
+            box-shadow: 0 0 5px #ffd166;
+            z-index: 4;
+            pointer-events: none;
+        }
+
+        /* 进食碎屑 */
+        .crumb {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #e9c46a;
+            border-radius: 50%;
+            z-index: 4;
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        /* 简单适配小屏 */
+        @media (max-width: 520px) {
+            .shop-panel {
+                left: 10px;
+                right: 10px;
+                width: auto;
+            }
+        }
+
+        /* --- 账号系统 UI --- */
+        #authOverlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: radial-gradient(circle at center, #001d3d 0%, #000814 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        #authOverlay.hidden {
+            display: none;
+        }
+
+        .auth-card {
+            background: rgba(4, 18, 48, 0.95);
+            padding: 40px;
+            border-radius: 24px;
+            width: 360px;
+            box-shadow: 0 0 50px rgba(0, 180, 216, 0.4);
+            border: 1px solid rgba(148, 210, 255, 0.3);
+            text-align: center;
+            animation: cardEntrance 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        @keyframes cardEntrance {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .auth-logo {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: linear-gradient(to bottom, #fff, #90e0ef);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        .auth-subtitle {
+            font-size: 14px;
+            color: #caf0f8;
+            margin-bottom: 30px;
+            opacity: 0.7;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .auth-input {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(144, 224, 239, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            color: white;
+            font-size: 16px;
+        }
+
+        .auth-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .auth-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00b4d8, #0077b6);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #90e0ef;
+            border: 1px solid rgba(144, 224, 239, 0.2);
+        }
+
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        .auth-msg {
+            margin-top: 15px;
+            font-size: 13px;
+            color: #ff9e00;
+            min-height: 20px;
+        }
+    </style>
+</head>
+<body>
+<div id="authOverlay">
+    <div class="auth-card">
+        <div class="auth-logo">海族馆大亨</div>
+        <div class="auth-subtitle">开启你的深海经营之旅</div>
+        <div class="auth-form">
+            <input type="text" id="usernameInput" class="auth-input" placeholder="请输入账号名...">
+            <input type="password" id="passwordInput" class="auth-input" placeholder="请输入密码...">
+            <div class="auth-btn-group">
+                <button class="auth-btn btn-secondary" id="registerBtn">建立账号</button>
+                <button class="auth-btn btn-primary" id="loginBtn">登录游戏</button>
+            </div>
+            <div class="auth-msg" id="authMsg"></div>
+        </div>
+    </div>
+</div>
+
+<div class="aquarium">
+    <div class="header">
+        <div class="header-left">
+            <div class="logo">海族馆大亨</div>
+            <div class="user-info" id="userInfo">
+                <span>馆主: <span id="currentUserName">---</span></span>
+                <button class="logout-btn" id="logoutBtn">注销</button>
+            </div>
+        </div>
+        <div class="coins">金币：<span id="coinsAmount">$100</span></div>
+        <button class="shop-button" id="openShopBtn">Shop</button>
+    </div>
+
+    <div class="sea-background">
+        <div class="sea-floor"></div>
+        <div class="notification-container" id="notificationContainer"></div>
+        
+        <!-- 鱼详细档案卡 -->
+        <div class="fish-profile-card" id="fishProfileCard">
+            <input type="text" class="profile-name-input" id="profileNameInput" value="鱼名">
+            <div class="profile-stat" id="profileRarity">稀有度: 普通</div>
+            <div class="profile-stat" id="profileGrowth">状态: 鱼苗</div>
+            <div class="profile-stat">经验值 (XP)</div>
+            <div class="xp-bar-bg">
+                <div class="xp-bar-fill" id="profileXPFill"></div>
+            </div>
+            <div class="profile-stat" id="profileIncome">成长后收益: ???</div>
+        </div>
+
+        <div class="fish-info-overlay hidden" id="fishInfoOverlay">
+            <div class="fish-info-panel">
+                <div class="fish-info-title" id="fishInfoTitle"></div>
+                <div class="fish-list" id="fishList"></div>
+                <button class="fish-info-close" id="fishInfoCloseBtn">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="shop-panel hidden" id="shopPanel">
+        <div class="shop-header">
+            <div class="shop-title">海族馆商店</div>
+            <button class="close-btn" id="closeShopBtn">✕</button>
+        </div>
+
+        <div class="shop-tabs">
+            <button class="tab-btn active" data-tab="fry">鱼苗包</button>
+            <button class="tab-btn" data-tab="decor">装饰</button>
+            <button class="tab-btn" data-tab="bait">鱼饵和水缸</button>
+        </div>
+
+        <div class="shop-content">
+            <!-- 鱼苗包 -->
+            <div class="tab-content active" id="tab-fry">
+                <div class="item-card">
+                    <div class="item-info">
+                        <div class="item-name">🐟 基础鱼苗包</div>
+                        <div class="item-desc">适合新手的小鱼组合。</div>
+                        <div class="item-price">价格：$100</div>
+                    </div>
+                    <button class="buy-btn" data-name="基础鱼苗包" data-price="100" data-type="fish">购买</button>
+                </div>
+
+                <div class="item-card">
+                    <div class="item-info">
+                        <div class="item-name">🐠 豪华鱼苗包</div>
+                        <div class="item-desc">包含多种稀有鱼苗。</div>
+                        <div class="item-price">价格：$1M</div>
+                    </div>
+                    <button class="buy-btn" data-name="豪华鱼苗包" data-price="1000000" data-type="fish">购买</button>
+                </div>
+
+                <div class="item-card">
+                    <div class="item-info">
+                        <div class="item-name">🐡 顶级鱼苗包</div>
+                        <div class="item-desc">有机会获得传说中的鱼。</div>
+                        <div class="item-price">价格：$100M</div>
+                    </div>
+                    <button class="buy-btn" data-name="顶级鱼苗包" data-price="100000000" data-type="fish">购买</button>
+                </div>
+
+                <div class="item-card">
+                    <div class="item-info">
+                        <div class="item-name">🐋 宇宙级鱼苗包</div>
+                        <div class="item-desc">极其稀有，只给最豪的馆主。</div>
+                        <div class="item-price">价格：$1T</div>
+                    </div>
+                    <button class="buy-btn" data-name="宇宙级鱼苗包" data-price="1000000000000" data-type="fish">购买</button>
+                </div>
+
+                <div class="item-card">
+                    <div class="item-info">
+                        <div class="item-name">🐉 终极·一京鱼苗包</div>
+                        <div class="item-desc">传说中的终极鱼苗组合。</div>
+                        <div class="item-price">价格：$10Qa</div>
+                    </div>
+                    <button class="buy-btn" data-name="终极·一京鱼苗包" data-price="10000000000000000" data-type="fish">购买</button>
+                </div>
+            </div>
+
+            <!-- 装饰 -->
+            <div class="tab-content" id="tab-decor">
+                <div class="item-card">
+                    <div class="item-info">
+                        <div class="item-name">🌤 浅海日光背景</div>
+                        <div class="item-desc">阳光透进来的浅蓝色海面。</div>
+                        <div class="item-price">价格：$1K</div>
+                    </div>
+                    <button class="buy-btn" data-name="浅海日光背景" data-price="1000">购买</button>
+                </div>
+
+                <div class="item-card">
+                    <div class="item-info">
+                        <div class="item-name">🪸 珊瑚礁乐园背景</div>
+                        <div class="item-desc">五彩缤纷的珊瑚与小鱼。</div>
+                        <div class="item-price">价格：$10K</div>
+                    </div>
+                    <button class="buy-btn" data-name="珊瑚礁乐园背景" data-price="10000">购买</button>
+                </div>
+
+                <div class="item-card">
+                    <div class="item-info">
+                        <div class="item-name">🌌 深海星光背景</div>
+                        <div class="item-desc">幽蓝深海，仿佛布满星星。</div>
+                        <div class="item-price">价格：$100K</div>
+                    </div>
+                    <button class="buy-btn" data-name="深海星光背景" data-price="100000">购买</button>
+                </div>
+
+                <div class="item-card">
+                    <div class="item-info">
+                        <div class="item-name">🏰 珊瑚拱门装饰</div>
+                        <div class="item-desc">让鱼从拱门中穿梭而过。</div>
+                        <div class="item-price">价格：$5K</div>
+                    </div>
+                    <button class="buy-btn" data-name="珊瑚拱门装饰" data-price="5000">购买</button>
+                </div>
+
+                <div class="item-card">
+                    <div class="item-info">
+                        <div class="item-name">🧰 神秘宝箱装饰</div>
+                        <div class="item-desc">会不会藏着更多金币？</div>
+                        <div class="item-price">价格：$50K</div>
+                    </div>
+                    <button class="buy-btn" data-name="神秘宝箱装饰" data-price="50000">购买</button>
+                </div>
+            </div>
+
+            <!-- 鱼饵和水缸：先占位 -->
+            <div class="tab-content" id="tab-bait">
+                <div class="coming-soon">
+                    鱼饵和水缸系统<br />
+                    还在设计中，敬请期待～
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const openShopBtn = document.getElementById("openShopBtn");
+    const closeShopBtn = document.getElementById("closeShopBtn");
+    const shopPanel = document.getElementById("shopPanel");
+
+    openShopBtn.addEventListener("click", () => {
+        shopPanel.classList.remove("hidden");
+    });
+
+    closeShopBtn.addEventListener("click", () => {
+        shopPanel.classList.add("hidden");
+    });
+
+    const tabButtons = document.querySelectorAll(".tab-btn");
+    const tabContents = {
+        fry: document.getElementById("tab-fry"),
+        decor: document.getElementById("tab-decor"),
+        bait: document.getElementById("tab-bait")
+    };
+
+    tabButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            tabButtons.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+
+            const tabName = btn.getAttribute("data-tab");
+            Object.keys(tabContents).forEach(key => {
+                tabContents[key].classList.toggle("active", key === tabName);
+            });
+        });
+    });
+
+    let coins = 100;
+    const coinsAmountSpan = document.getElementById("coinsAmount");
+    const seaBackground = document.querySelector(".sea-background");
+    const fishInfoOverlay = document.getElementById("fishInfoOverlay");
+    const fishInfoTitle = document.getElementById("fishInfoTitle");
+    const fishList = document.getElementById("fishList");
+    const fishInfoCloseBtn = document.getElementById("fishInfoCloseBtn");
+    const notificationContainer = document.getElementById("notificationContainer");
+    
+    // --- 账号系统逻辑 ---
+    let currentUser = null;
+    let autoSaveInterval = null;
+    const authOverlay = document.getElementById("authOverlay");
+    const usernameInput = document.getElementById("usernameInput");
+    const passwordInput = document.getElementById("passwordInput");
+    const loginBtn = document.getElementById("loginBtn");
+    const registerBtn = document.getElementById("registerBtn");
+    const authMsg = document.getElementById("authMsg");
+    const userInfo = document.getElementById("userInfo");
+    const currentUserName = document.getElementById("currentUserName");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    function getStorage() {
+        return JSON.parse(localStorage.getItem("aquarium_users") || "{}");
+    }
+
+    function saveToStorage(users) {
+        localStorage.setItem("aquarium_users", JSON.stringify(users));
+    }
+
+    registerBtn.addEventListener("click", () => {
+        const u = usernameInput.value.trim();
+        const p = passwordInput.value.trim();
+        if (!u || !p) return authMsg.textContent = "账号或密码不能为空！";
+        
+        const users = getStorage();
+        if (users[u]) return authMsg.textContent = "该账号名已被注册！";
+        
+        users[u] = {
+            password: p,
+            coins: 100,
+            ownedFishIds: [],
+            grownFishIds: [],
+            fishInstances: [] 
+        };
+        saveToStorage(users);
+        authMsg.textContent = "建立账号成功！请登录。";
+    });
+
+    loginBtn.addEventListener("click", () => {
+        const u = usernameInput.value.trim();
+        const p = passwordInput.value.trim();
+        const users = getStorage();
+        
+        if (users[u] && users[u].password === p) {
+            currentUser = u;
+            loadGame(users[u]);
+            authOverlay.classList.add("hidden");
+            userInfo.style.display = "flex";
+            currentUserName.textContent = u;
+            showNotification(`欢迎回来，${u}！游戏已加载。`);
+            startAutoSave();
+        } else {
+            authMsg.textContent = "账号或密码错误！";
+        }
+    });
+
+    logoutBtn.addEventListener("click", () => {
+        if (confirm("确定要注销并保存进度吗？")) {
+            // 保存最后一次
+            performSave();
+            // 重置状态
+            currentUser = null;
+            if (autoSaveInterval) clearInterval(autoSaveInterval);
+            // 清场
+            document.querySelectorAll(".fish").forEach(f => f.remove());
+            baits.forEach(b => b.remove());
+            baits.length = 0;
+            // UI
+            authOverlay.classList.remove("hidden");
+            userInfo.style.display = "none";
+            coins = 100;
+            updateCoinsDisplay();
+            showNotification("已安全注销。");
+        }
+    });
+
+    function loadGame(userData) {
+        coins = userData.coins || 100;
+        updateCoinsDisplay();
+        ownedFishIds.clear();
+        (userData.ownedFishIds || []).forEach(id => ownedFishIds.add(id));
+        grownFishIds.clear();
+        (userData.grownFishIds || []).forEach(id => grownFishIds.add(id));
+        
+        document.querySelectorAll(".fish").forEach(f => f.remove());
+        
+        if (userData.fishInstances) {
+            userData.fishInstances.forEach(inst => {
+                let fishData = findFishDataById(inst.id);
+                if (fishData) {
+                    const isGrown = inst.isGrown === "true";
+                    let currentWidth = parseFloat(inst.width) || 40;
+                    // 如果已经长大，存档里的 width 是 originalSize * 2
+                    const baseSize = isGrown ? currentWidth / 2 : currentWidth;
+                    
+                    createFish(
+                        fishData, 
+                        baseSize, 
+                        inst.left, 
+                        inst.top, 
+                        parseInt(inst.xp) || 0, 
+                        isGrown, 
+                        inst.name
+                    );
+                }
+            });
+        }
+    }
+
+    function findFishDataById(id) {
+        for (const pack of Object.values(fishPacks)) {
+            const found = pack.find(f => f.id === id);
+            if (found) return found;
+        }
+        return null;
+    }
+
+    function startAutoSave() {
+        if (autoSaveInterval) clearInterval(autoSaveInterval);
+        autoSaveInterval = setInterval(performSave, 3000);
+    }
+
+    function performSave() {
+        if (!currentUser) return;
+        const users = getStorage();
+        const userData = users[currentUser];
+        
+        userData.coins = coins;
+        userData.ownedFishIds = Array.from(ownedFishIds);
+        userData.grownFishIds = Array.from(grownFishIds);
+        
+        const instances = [];
+        document.querySelectorAll(".fish").forEach(f => {
+            instances.push({
+                id: f.dataset.id,
+                name: f.dataset.name,
+                xp: f.dataset.xp,
+                isGrown: f.dataset.isGrown,
+                width: f.style.width,
+                height: f.style.height,
+                top: f.style.top,
+                left: f.style.left
+            });
+        });
+        userData.fishInstances = instances;
+        
+        users[currentUser] = userData;
+        saveToStorage(users);
+    }
+
+    // --- 核心鱼类逻辑重构 ---
+
+    const ownedFishIds = new Set();
+    const grownFishIds = new Set(); 
+
+    function createFish(fishData, size, x, y, xp = 0, isGrown = false, name = null) {
+        const fish = document.createElement("div");
+        fish.className = "fish";
+        if (isGrown) fish.classList.add("grown");
+        
+        fish.style.background = fishData.color;
+        fish.style.width = (isGrown ? size * 2 : size) + "px";
+        fish.style.height = (isGrown ? size : size / 2) + "px";
+        fish.style.left = x || (Math.random() * 80 + "%");
+        fish.style.top = y || (20 + Math.random() * 60 + "%");
+        
+        fish.dataset.id = fishData.id;
+        fish.dataset.name = name || fishData.name;
+        fish.dataset.income = fishData.income;
+        fish.dataset.xp = xp;
+        fish.dataset.targetXp = fishData.growthSec;
+        fish.dataset.isGrown = isGrown ? "true" : "false";
+
+        const tail = document.createElement("div");
+        tail.className = "tail-part";
+        tail.style.background = fishData.color;
+        tail.style.clipPath = fishData.tail;
+        fish.appendChild(tail);
+
+        seaBackground.appendChild(fish);
+        initFishLogic(fish, fishData, size);
+        return fish;
+    }
+
+    function initFishLogic(fish, fishData, originalSize) {
+        // 游动 AI
+        function startMoving() {
+            if (!fish.parentNode) return;
+            
+            const detectedBait = findNearbyBait(fish);
+            let targetX, targetY, moveDuration;
+            const isGrown = fish.dataset.isGrown === "true";
+
+            if (detectedBait) {
+                if (!isGrown) {
+                    targetX = parseFloat(detectedBait.style.left);
+                    targetY = parseFloat(detectedBait.style.top);
+                    moveDuration = 0.5 + Math.random() * 0.5;
+                    fish.dataset.isTargetingBait = "true";
+                } else {
+                    const bx = parseFloat(detectedBait.style.left);
+                    const by = parseFloat(detectedBait.style.top);
+                    targetX = bx + (Math.random() * 10 - 5);
+                    targetY = by + (Math.random() * 10 - 5);
+                    moveDuration = 2 + Math.random() * 2;
+                    fish.dataset.isTargetingBait = "true";
+                }
+            } else {
+                targetX = Math.random() * 90;
+                targetY = 20 + Math.random() * 60;
+                moveDuration = 4 + Math.random() * 6;
+                fish.dataset.isTargetingBait = "false";
+            }
+
+            const currentX = parseFloat(fish.style.left) || 0;
+            if (targetX > currentX) {
+                fish.style.transform = "scaleX(-1)";
+            } else {
+                fish.style.transform = "scaleX(1)";
+            }
+
+            requestAnimationFrame(() => {
+                fish.style.transition = `left ${moveDuration}s linear, top ${moveDuration}s linear, transform 0.5s ease-out, width 1s ease-in-out, height 1s ease-in-out`;
+                fish.style.left = targetX + "%";
+                fish.style.top = targetY + "%";
+            });
+
+            fish.moveTimeout = setTimeout(startMoving, moveDuration * 1000);
+        }
+
+        setTimeout(startMoving, 100);
+
+        // 进食检测与 XP 自动增长
+        const interactionInt = setInterval(() => {
+            if (!fish.parentNode) return clearInterval(interactionInt);
+            
+            const isGrown = fish.dataset.isGrown === "true";
+            
+            // 自动侦测鱼饵以改变航向
+            if (fish.dataset.isTargetingBait === "false" && baits.length > 0) {
+                if (findNearbyBait(fish)) {
+                    clearTimeout(fish.moveTimeout);
+                    startMoving();
+                }
+            }
+
+            // 碰撞进食
+            const fishRect = fish.getBoundingClientRect();
+            for (let i = baits.length - 1; i >= 0; i--) {
+                const b = baits[i];
+                const baitRect = b.getBoundingClientRect();
+                if (fishRect.left < baitRect.right && fishRect.right > baitRect.left && 
+                    fishRect.top < baitRect.bottom && fishRect.bottom > baitRect.top) {
+                    if (!isGrown) {
+                        createCrumbs(parseFloat(b.style.left), parseFloat(b.style.top));
+                        b.remove();
+                        baits.splice(i, 1);
+                        updateXP(fish, fishData, originalSize, 5);
+                        clearTimeout(fish.moveTimeout);
+                        startMoving();
+                        break;
+                    }
+                }
+            }
+        }, 150);
+
+        // XP 随时间增长
+        const xpInt = setInterval(() => {
+            if (!fish.parentNode || fish.dataset.isGrown === "true") return clearInterval(xpInt);
+            updateXP(fish, fishData, originalSize, 1);
+        }, 1000);
+
+        // 交互
+        fish.addEventListener("click", (e) => {
+            e.stopPropagation();
+            isPinned = true;
+            activeFish = fish;
+            updateProfileCard(fish);
+            fishProfileCard.style.display = "flex";
+        });
+        fish.addEventListener("mouseenter", () => { 
+            if (!isPinned) { 
+                activeFish = fish; 
+                updateProfileCard(fish); 
+                fishProfileCard.style.display = "flex"; 
+            } 
+        });
+        fish.addEventListener("mouseleave", (e) => { 
+            if (!isPinned && !fishProfileCard.contains(e.relatedTarget)) { 
+                activeFish = null; 
+                fishProfileCard.style.display = "none"; 
+            } 
+        });
+    }
+
+    function updateXP(fish, fishData, originalSize, amount) {
+        if (fish.dataset.isGrown === "true") return;
+        let xp = parseInt(fish.dataset.xp) + amount;
+        fish.dataset.xp = xp;
+        if (activeFish === fish) updateProfileCard(fish);
+        if (xp >= parseInt(fish.dataset.targetXp)) {
+            triggerGrowth(fish, fishData, originalSize);
+        }
+    }
+
+    function triggerGrowth(fish, fishData, originalSize) {
+        if (fish.dataset.isGrown === "true") return;
+        fish.dataset.isGrown = "true";
+        fish.classList.add("grown");
+        fish.style.width = (originalSize * 2) + "px";
+        fish.style.height = (originalSize) + "px";
+        if (!grownFishIds.has(fishData.id)) {
+            grownFishIds.add(fishData.id);
+            showNotification(`🎉 你的「${fishData.name}」已经长大了！`);
+        }
+    }
+
+    function findNearbyBait(fish) {
+        if (baits.length === 0) return null;
+        const fishX = parseFloat(fish.style.left) || 0;
+        const fishY = parseFloat(fish.style.top) || 0;
+        let nearestBait = null;
+        let minDistance = 25; // 探测范围
+        baits.forEach(b => {
+            const dist = Math.sqrt(Math.pow(fishX - parseFloat(b.style.left), 2) + Math.pow(fishY - parseFloat(b.style.top), 2));
+            if (dist < minDistance) { minDistance = dist; nearestBait = b; }
+        });
+        return nearestBait;
+    }
+
+    let activeFish = null;
+    let isPinned = false; // 是否点击固定了档案卡
+    const fishProfileCard = document.getElementById("fishProfileCard");
+
+    // 鱼饵逻辑
+    const baits = [];
+    let isBaiting = false;
+    let baitDropInterval = null;
+    let lastMousePos = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+
+    seaBackground.addEventListener("click", (e) => {
+        // 如果点的是鱼或UI，不处理自动放鱼饵逻辑
+        if (e.target.classList.contains("fish") || e.target.closest(".fish") || 
+            e.target.closest(".shop-panel") || e.target.closest(".fish-info-overlay") || 
+            e.target.closest(".fish-profile-card") || e.target.closest(".header")) {
+            return;
+        }
+
+        if (!currentUser) {
+            showNotification("请先登录游戏后再投喂鱼儿哦！");
+            authOverlay.classList.remove("hidden");
+            return;
+        }
+
+        // 切换投喂状态
+        isBaiting = !isBaiting;
+        
+        if (isBaiting) {
+            // 开始自动放鱼饵
+            lastMousePos = { x: e.clientX, y: e.clientY };
+            // 立即放一个
+            spawnBaitAtCurrentMouse();
+            // 开启定时器：每500ms一个 = 每秒2个
+            if (baitDropInterval) clearInterval(baitDropInterval);
+            baitDropInterval = setInterval(() => {
+                spawnBaitAtCurrentMouse();
+            }, 500);
+            showNotification("🍗 自动投喂：已开启 (2个/秒)");
+        } else {
+            // 停止放鱼饵
+            if (baitDropInterval) {
+                clearInterval(baitDropInterval);
+                baitDropInterval = null;
+            }
+            showNotification("🚫 自动投喂：已关闭");
+        }
+    });
+
+    seaBackground.addEventListener("mousemove", (e) => {
+        lastMousePos = { x: e.clientX, y: e.clientY };
+    });
+
+    function spawnBaitAtCurrentMouse() {
+        if (!isBaiting) return;
+        const x = (lastMousePos.x / window.innerWidth) * 100;
+        const y = (lastMousePos.y / window.innerHeight) * 100;
+        spawnBait(x, y);
+    }
+
+    function spawnBait(x, y) {
+        // 维持鱼饵数量上限，避免性能问题
+        if (baits.length >= 200) {
+            const oldest = baits.shift();
+            if (oldest) oldest.remove();
+        }
+
+        const b = document.createElement("div");
+        b.className = "bait";
+        b.style.left = x + "%";
+        b.style.top = y + "%";
+        seaBackground.appendChild(b);
+        baits.push(b);
+
+        // 鱼饵下沉逻辑
+        let currentY = y;
+        const fallInterval = setInterval(() => {
+            if (!b.parentNode) {
+                clearInterval(fallInterval);
+                return;
+            }
+            currentY += 0.25; // 稍微调快一点下沉速度
+            b.style.top = currentY + "%";
+
+            if (currentY > 92) { // 沉到沙地附近消失
+                b.remove();
+                const idx = baits.indexOf(b);
+                if (idx > -1) baits.splice(idx, 1);
+                clearInterval(fallInterval);
+            }
+        }, 40);
+    }
+
+    function createCrumbs(x, y) {
+        for (let i = 0; i < 5; i++) {
+            const c = document.createElement("div");
+            c.className = "crumb";
+            c.style.left = x + "%";
+            c.style.top = y + "%";
+            seaBackground.appendChild(c);
+
+            let curY = y;
+            let curX = x + (Math.random() * 2 - 1);
+            let opacity = 0.8;
+            
+            const crumbInterval = setInterval(() => {
+                curY += 0.5;
+                opacity -= 0.05;
+                c.style.top = curY + "%";
+                c.style.left = curX + "%";
+                c.style.opacity = opacity;
+                
+                if (opacity <= 0 || curY > 98) {
+                    c.remove();
+                    clearInterval(crumbInterval);
+                }
+            }, 60);
+        }
+    }
+
+    // 点击背景取消固定
+    document.addEventListener("click", (e) => {
+        const isClickInsideCard = fishProfileCard.contains(e.target);
+        const isClickOnFish = e.target.classList.contains("fish") || e.target.closest(".fish");
+        
+        if (!isClickInsideCard && !isClickOnFish) {
+            isPinned = false;
+            activeFish = null;
+            fishProfileCard.style.display = "none";
+        }
+    });
+
+    // 收益循环逻辑
+    setInterval(() => {
+        let totalIncome = 0;
+        const allFish = document.querySelectorAll(".fish");
+        allFish.forEach(f => {
+            if (f.dataset.isGrown === "true") {
+                totalIncome += parseInt(f.dataset.income || 0);
+            }
+        });
+        
+        if (totalIncome > 0) {
+            coins += totalIncome;
+            updateCoinsDisplay();
+        }
+    }, 1000);
+    const profileNameInput = document.getElementById("profileNameInput");
+    const profileRarity = document.getElementById("profileRarity");
+    const profileGrowth = document.getElementById("profileGrowth");
+    const profileXPFill = document.getElementById("profileXPFill");
+    const profileIncome = document.getElementById("profileIncome");
+
+    function updateProfileCard(fish) {
+        if (!fish) return;
+        profileNameInput.value = fish.dataset.name;
+        
+        const rarity = fish.dataset.id.startsWith("basic") ? "普通" : 
+                       fish.dataset.id.startsWith("lux") ? "稀有" :
+                       fish.dataset.id.startsWith("top") ? "史诗" : "传说";
+        profileRarity.textContent = `稀有度: ${rarity}`;
+        
+        const isGrown = fish.dataset.isGrown === "true";
+        profileGrowth.textContent = `状态: ${isGrown ? "已成年" : "鱼苗"}`;
+        
+        const xp = parseInt(fish.dataset.xp);
+        const targetXp = parseInt(fish.dataset.targetXp);
+        const percent = Math.min(100, (xp / targetXp) * 100);
+        profileXPFill.style.width = percent + "%";
+
+        if (isGrown || grownFishIds.has(fish.dataset.id)) {
+            profileIncome.textContent = `收益: $${fish.dataset.income}/秒`;
+        } else {
+            profileIncome.textContent = `成长后收益: ??? $`;
+        }
+    }
+
+    profileNameInput.addEventListener("input", () => {
+        if (activeFish) {
+            activeFish.dataset.name = profileNameInput.value;
+        }
+    });
+
+    fishProfileCard.addEventListener("mouseleave", () => {
+        activeFish = null;
+        fishProfileCard.style.display = "none";
+    });
+    
+    const buyButtons = document.querySelectorAll(".buy-btn");
+    buyButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            if (!currentUser) {
+                alert("请先登录游戏后再购买物品哦！");
+                authOverlay.classList.remove("hidden");
+                return;
+            }
+            const name = btn.getAttribute("data-name");
+            const price = btn.getAttribute("data-price");
+            const type = btn.getAttribute("data-type") || "";
+            const priceValue = Number(price);
+    
+            if (Number.isNaN(priceValue)) {
+                alert(`价格数据有问题，暂时无法购买「${name}」。`);
+                return;
+            }
+    
+            if (coins >= priceValue) {
+                coins -= priceValue;
+                updateCoinsDisplay();
+    
+                if (type === "fish") {
+                    buildFishInfo(name);
+                    markFishOwned(name);
+                    addFishPack(name);
+                } else {
+                    alert(`购买成功！你买了「${name}」，花费 ${formatCoinsWithSymbol(priceValue)}。`);
+                }
+            } else {
+                alert(`金币不够买「${name}」哦！\n需要：${formatCoinsWithSymbol(priceValue)}，你只有：${formatCoinsWithSymbol(coins)}。`);
+            }
+        });
+    });
+
+    function addFishPack(packName) {
+        if (!seaBackground) return;
+        const pack = fishPacks[packName];
+        if (!pack) return;
+    
+        pack.forEach(fishData => {
+            const size = 32 + Math.random() * 10;
+            createFish(fishData, size);
+        });
+    }
+
+    function buildFishInfo(packName) {
+        const pack = fishPacks[packName];
+        if (!pack || !fishInfoOverlay || !fishList || !fishInfoTitle) return;
+    
+        fishInfoTitle.textContent = `${packName} - 组合鱼介绍`;
+        fishList.innerHTML = "";
+    
+        pack.forEach(fish => {
+            const row = document.createElement("div");
+            row.className = "fish-row";
+    
+            const icon = document.createElement("div");
+            icon.className = "fish-mini";
+            icon.style.background = fish.color;
+            const miniTail = document.createElement("div");
+            miniTail.style.position = "absolute";
+            miniTail.style.right = "-6px";
+            miniTail.style.top = "50%";
+            miniTail.style.transform = "translateY(-50%)";
+            miniTail.style.width = "8px";
+            miniTail.style.height = "10px";
+            miniTail.style.background = fish.color;
+            miniTail.style.clipPath = fish.tail;
+            icon.appendChild(miniTail);
+    
+            const textBox = document.createElement("div");
+            const main = document.createElement("div");
+            main.className = "fish-text-main";
+            main.textContent = fish.name;
+    
+            const sub = document.createElement("div");
+            sub.className = "fish-text-sub";
+            sub.textContent = `${fish.desc} (成长时间: ${fish.growth})`;
+    
+            const income = document.createElement("div");
+            income.className = "fish-income";
+            const isGrown = grownFishIds.has(fish.id);
+            if (isGrown) {
+                income.textContent = `成长后收益: ${formatCoinsWithSymbol(fish.income)}/秒`;
+            } else {
+                income.textContent = "成长后收益: ??? $";
+            }
+    
+            textBox.appendChild(main);
+            textBox.appendChild(sub);
+            textBox.appendChild(income);
+    
+            row.appendChild(icon);
+            row.appendChild(textBox);
+            fishList.appendChild(row);
+        });
+        fishInfoOverlay.classList.remove("hidden");
+    }
+
+    function markFishOwned(packName) {
+        const pack = fishPacks[packName];
+        if (!pack) return;
+        pack.forEach(fish => ownedFishIds.add(fish.id));
+    }
+
+    if (fishInfoCloseBtn && fishInfoOverlay) {
+        fishInfoCloseBtn.addEventListener("click", () => {
+            fishInfoOverlay.classList.add("hidden");
+        });
+    }
+
+    updateCoinsDisplay();
+</script>
+</body>
+</html>
