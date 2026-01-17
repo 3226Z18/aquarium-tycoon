@@ -904,7 +904,12 @@
             fishInstances: [] 
         };
         saveToStorage(users);
-        authMsg.textContent = "建立账号成功！请登录。";
+        authMsg.style.color = "#00f5d4";
+        authMsg.textContent = "建立账号成功！请直接登录。";
+        // 自动填好账号名，方便登录
+        usernameInput.value = u;
+        passwordInput.value = "";
+        passwordInput.focus();
     });
 
     loginBtn.addEventListener("click", () => {
@@ -912,7 +917,12 @@
         const p = passwordInput.value.trim();
         const users = getStorage();
         
-        if (users[u] && users[u].password === p) {
+        if (!users[u]) {
+            authMsg.style.color = "#ff4d4d";
+            return authMsg.textContent = "该账号不存在！";
+        }
+        
+        if (users[u].password === p) {
             currentUser = u;
             loadGame(users[u]);
             authOverlay.classList.add("hidden");
@@ -921,7 +931,8 @@
             showNotification(`欢迎回来，${u}！游戏已加载。`);
             startAutoSave();
         } else {
-            authMsg.textContent = "账号或密码错误！";
+            authMsg.style.color = "#ff4d4d";
+            authMsg.textContent = "密码错误，请检查大小写！";
         }
     });
 
